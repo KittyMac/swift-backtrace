@@ -22,7 +22,7 @@ typealias CBacktraceFullCallback = @convention(c) (_ data: UnsafeMutableRawPoint
 typealias CBacktraceSimpleCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt) -> CInt
 typealias CBacktraceSyminfoCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt, _ filename: UnsafePointer<CChar>?, _ symval: UInt, _ symsize: UInt) -> Void
 
-private var crashout = fopen("crash_\(UUID().uuidString).txt", 119) // "w" == 119
+private var crashout = fopen("crash_\(UUID().uuidString).txt", "w")
 
 private let state = backtrace_create_state(nil, /* BACKTRACE_SUPPORTS_THREADS */ 1, nil, nil)
 
