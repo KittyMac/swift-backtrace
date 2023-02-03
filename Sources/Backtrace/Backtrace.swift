@@ -15,11 +15,14 @@
 #if os(Linux)
 import CBacktrace
 import Glibc
+import Founation
 
 typealias CBacktraceErrorCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ msg: UnsafePointer<CChar>?, _ errnum: CInt) -> Void
 typealias CBacktraceFullCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt, _ filename: UnsafePointer<CChar>?, _ lineno: CInt, _ function: UnsafePointer<CChar>?) -> CInt
 typealias CBacktraceSimpleCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt) -> CInt
 typealias CBacktraceSyminfoCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt, _ filename: UnsafePointer<CChar>?, _ symval: UInt, _ symsize: UInt) -> Void
+
+private var crashout = open("crash_\(UUID().uuidString).txt", O_WRONLY)
 
 private let state = backtrace_create_state(nil, /* BACKTRACE_SUPPORTS_THREADS */ 1, nil, nil)
 
@@ -46,7 +49,7 @@ private let fullCallback: CBacktraceFullCallback? = {
 
     str.withCString { ptr in
         _ = withVaList([ptr]) { vaList in
-            vfprintf(stderr, "%s", vaList)
+            vfprintf(crashout, "%s", vaList)
         }
     }
     return 0
@@ -56,15 +59,15 @@ private let errorCallback: CBacktraceErrorCallback? = {
     _, msg, errNo in
     if let msg = msg {
         _ = withVaList([msg, errNo]) { vaList in
-            vfprintf(stderr, "SwiftBacktrace ERROR: %s (errno: %d)\n", vaList)
+            vfprintf(crashout, "SwiftBacktrace ERROR: %s (errno: %d)\n", vaList)
         }
     }
 }
 
 private func printBacktrace(signal: CInt) {
-    _ = fputs("Received signal \(signal). Backtrace:\n", stderr)
+    _ = fputs("Received signal \(signal). Backtrace:\n", crashout)
     backtrace_full(state, /* skip */ 0, fullCallback, errorCallback, nil)
-    fflush(stderr)
+    fflush(crashout)
 }
 
 public enum Backtrace {
@@ -248,9 +251,9 @@ public enum Backtrace {
                 _ = details.withCString { pszDetails in
                     withVaList([Frame.AddrPC.Offset, pszDetails]) {
                         #if arch(arm64) || arch(x86_64)
-                        vfprintf(stderr, "%#016x%s\n", $0)
+                        vfprintf(crashout, "%#016x%s\n", $0)
                         #else
-                        vfprintf(stderr, "%#08x%s\n", $0)
+                        vfprintf(crashout, "%#08x%s\n", $0)
                         #endif
                     }
                 }

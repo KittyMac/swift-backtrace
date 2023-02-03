@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+import Foundation
 
 public final class BacktraceTests: XCTestCase {
     func testFatalError() throws {
