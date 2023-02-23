@@ -22,7 +22,7 @@ typealias CBacktraceFullCallback = @convention(c) (_ data: UnsafeMutableRawPoint
 typealias CBacktraceSimpleCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt) -> CInt
 typealias CBacktraceSyminfoCallback = @convention(c) (_ data: UnsafeMutableRawPointer?, _ pc: UInt, _ filename: UnsafePointer<CChar>?, _ symval: UInt, _ symsize: UInt) -> Void
 
-private var crashout = fopen("crash_\(UUID().uuidString).txt", "w")
+private var crashout = stderr
 
 private let state = backtrace_create_state(nil, /* BACKTRACE_SUPPORTS_THREADS */ 1, nil, nil)
 
@@ -81,7 +81,6 @@ public enum Backtrace {
     public static func install(signals: [CInt],
                                path: String? = nil) {
         if let path = path {
-            fclose(crashout)
             crashout = fopen(path, "w")
         }
 
@@ -144,7 +143,6 @@ public enum Backtrace {
     /// Install the backtrace handler on default signals.
     public static func install(path: String? = nil) {
         if let path = path {
-            fclose(crashout)
             crashout = fopen(path, "w")
         }
         
