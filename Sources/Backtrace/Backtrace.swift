@@ -72,12 +72,19 @@ private func printBacktrace(signal: CInt) {
 
 public enum Backtrace {
     /// Install the backtrace handler on default signals: `SIGILL`, `SIGSEGV`, `SIGBUS`, `SIGFPE`.
-    public static func install() {
-        Backtrace.install(signals: [SIGILL, SIGSEGV, SIGBUS, SIGFPE])
+    public static func install(path: String? = nil) {
+        Backtrace.install(signals: [SIGILL, SIGSEGV, SIGBUS, SIGFPE],
+                          path: path)
     }
 
     /// Install the backtrace handler when any of `signals` happen.
-    public static func install(signals: [CInt]) {
+    public static func install(signals: [CInt],
+                               path: String? = nil) {
+        if let path = path {
+            fclose(crashout)
+            crashout = fopen(path, "w")
+        }
+
         for signal in signals {
             self.setupHandler(signal: signal) { signal in
                 printBacktrace(signal: signal)
@@ -279,7 +286,8 @@ public enum Backtrace {
     public static func install(path: String? = nil) {}
 
     /// Install the backtrace handler on specific signals. Available on Linux only.
-    public static func install(signals: [CInt], path: String? = nil) {}
+    public static func install(signals: [CInt],
+                               path: String? = nil) {}
 
     @available(*, deprecated, message: "This method will be removed in the next major version.")
     public static func print() {}
