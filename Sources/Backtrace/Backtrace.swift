@@ -129,12 +129,18 @@ public enum Backtrace {
 
     /// Signal selection unavailable on Windows. Use ``install()-484jy``.
     @available(*, deprecated, message: "signal selection unavailable on Windows")
-    public static func install(signals: [CInt]) {
-        Backtrace.install()
+    public static func install(signals: [CInt],
+                               path: String? = nil) {
+        Backtrace.install(path: path)
     }
 
     /// Install the backtrace handler on default signals.
-    public static func install() {
+    public static func install(path: String? = nil) {
+        if let path = path {
+            fclose(crashout)
+            crashout = fopen(path, "w")
+        }
+        
         // Install a last-chance vectored exception handler to capture the error
         // before the termination and report the stack trace.  It is unlikely
         // that this will be recovered at this point by a SEH handler.
@@ -270,10 +276,10 @@ public enum Backtrace {
 #else
 public enum Backtrace {
     /// Install the backtrace handler on default signals. Available on Windows and Linux only.
-    public static func install() {}
+    public static func install(path: String? = nil) {}
 
     /// Install the backtrace handler on specific signals. Available on Linux only.
-    public static func install(signals: [CInt]) {}
+    public static func install(signals: [CInt], path: String? = nil) {}
 
     @available(*, deprecated, message: "This method will be removed in the next major version.")
     public static func print() {}
