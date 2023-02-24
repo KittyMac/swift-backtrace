@@ -94,7 +94,7 @@ public enum Backtrace {
         crashout_path = path
 
         for signal in signals {
-            self.setupHandler(signal: signal) { signal in
+            Backtrace.signal(signal) { signal in
                 printBacktrace(signal: signal)
                 raise(signal)
             }
@@ -105,8 +105,10 @@ public enum Backtrace {
     public static func print() {
         backtrace_full(state, /* skip */ 0, fullCallback, errorCallback, nil)
     }
+}
 
-    private static func setupHandler(signal: Int32, handler: @escaping @convention(c) (CInt) -> Void) {
+extension Backtrace {
+    public static func signal(_ signal: Int32, handler: @escaping @convention(c) (CInt) -> Void) {
         typealias sigaction_t = sigaction
         let sa_flags = CInt(SA_NODEFER) | CInt(bitPattern: CUnsignedInt(SA_RESETHAND))
         var sa = sigaction_t(__sigaction_handler: unsafeBitCast(handler, to: sigaction.__Unnamed_union___sigaction_handler.self),
@@ -121,6 +123,8 @@ public enum Backtrace {
 
 #else
 
+import Foundation
+
 public enum Backtrace {
     /// Install the backtrace handler on default signals. Available on Windows and Linux only.
     public static func install(path: String? = nil) {}
@@ -131,6 +135,19 @@ public enum Backtrace {
 
     @available(*, deprecated, message: "This method will be removed in the next major version.")
     public static func print() {}
+}
+
+extension Backtrace {
+    public static func signal(_ signal: Int32, handler: @escaping @convention(c) (CInt) -> Void) {
+        typealias sigaction_t = sigaction
+        let sa_flags = CInt(SA_NODEFER) | CInt(bitPattern: CUnsignedInt(SA_RESETHAND))
+        var sa = sigaction_t(__sigaction_u: unsafeBitCast(handler, to: __sigaction_u.self),
+                             sa_mask: sigset_t(),
+                             sa_flags: sa_flags)
+        withUnsafePointer(to: &sa) { ptr -> Void in
+            sigaction(signal, ptr, nil)
+        }
+    }
 }
 
 #endif
