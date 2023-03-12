@@ -24,12 +24,16 @@ typealias CBacktraceSyminfoCallback = @convention(c) (_ data: UnsafeMutableRawPo
 
 private var crashout_path: String?
 private var crashout = stderr
+private var crashcycle = 0
 
 private let state = backtrace_create_state(nil, /* BACKTRACE_SUPPORTS_THREADS */ 1, nil, nil)
 
 private func checkCrashOutFile() {
+    guard crashcycle < 10 else { fatalError("cyclic backtrace detected") }
+    crashcycle += 1
+    
     guard let crashout_path = crashout_path else { return }
-    guard crashout != stderr else { return }
+    guard crashout == stderr else { return }
     crashout = fopen(crashout_path, "w")
 }
 
