@@ -29,15 +29,16 @@ private var crashcycle = 0
 private let state = backtrace_create_state(nil, /* BACKTRACE_SUPPORTS_THREADS */ 1, nil, nil)
 
 private func checkCrashOutFile() {
-    guard crashcycle < 10 else { fatalError("cyclic backtrace detected") }
+    guard crashcycle < 100 else {
+        fflush(crashout)
+        close(fileno(crashout))
+        fatalError()
+    }
     crashcycle += 1
     
     guard let crashout_path = crashout_path else { return }
     guard crashout == stderr else { return }
-    
-    _ = fputs("before opening crash file\n", stderr)
     crashout = fdopen(open(crashout_path, O_CREAT | O_WRONLY), "w")
-    _ = fputs("after opening crash file\n", stderr)
     fflush(crashout)
 }
 
