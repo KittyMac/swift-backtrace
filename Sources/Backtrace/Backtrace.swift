@@ -34,7 +34,10 @@ private func checkCrashOutFile() {
     
     guard let crashout_path = crashout_path else { return }
     guard crashout == stderr else { return }
-    crashout = fopen(crashout_path, "w")
+    fprintf(stderr, "before opening crash file")
+    crashout = fdopen(open(crashout_path, O_CREAT | O_WRONLY), "w")
+    fprintf(stderr, "after opening crash file")
+    fflush(crashout)
 }
 
 private let fullCallback: CBacktraceFullCallback? = {
