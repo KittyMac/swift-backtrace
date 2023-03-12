@@ -34,9 +34,10 @@ private func checkCrashOutFile() {
     
     guard let crashout_path = crashout_path else { return }
     guard crashout == stderr else { return }
-    fprintf(stderr, "before opening crash file")
+    
+    _ = fputs("before opening crash file\n", stderr)
     crashout = fdopen(open(crashout_path, O_CREAT | O_WRONLY), "w")
-    fprintf(stderr, "after opening crash file")
+    _ = fputs("after opening crash file\n", stderr)
     fflush(crashout)
 }
 
