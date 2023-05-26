@@ -29,10 +29,10 @@ private var crashcycle = 0
 private let state = backtrace_create_state(nil, /* BACKTRACE_SUPPORTS_THREADS */ 1, nil, nil)
 
 private func checkCrashOutFile() {
-    guard crashcycle < 100 else {
+    guard crashcycle < 6 else {
         fflush(crashout)
         close(fileno(crashout))
-        fatalError()
+        return
     }
     crashcycle += 1
     
