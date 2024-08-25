@@ -66,9 +66,7 @@ private let fullCallback: CBacktraceFullCallback? = {
     str.append("\n")
 
     str.withCString { ptr in
-        _ = withVaList([ptr]) { vaList in
-            vfprintf(crashout, "%s", vaList)
-        }
+        fprintf(crashout, ptr)
     }
     return 0
 }
