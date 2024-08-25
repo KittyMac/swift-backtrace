@@ -66,7 +66,7 @@ private let fullCallback: CBacktraceFullCallback? = {
     str.append("\n")
 
     str.withCString { ptr in
-        write(crashout, ptr, strlen(crashout))
+        write(fileno(crashout), ptr, strlen(crashout))
     }
     return 0
 }
